@@ -28,6 +28,37 @@ def upload_file():
                 missing_cols = [col for col in required_columns if col not in df.columns]
                 return jsonify({"error": f"В файле отсутствуют необходимые колонки: {', '.join(missing_cols)}"}), 400
 
+            # Проверяем дубликаты question_id
+            duplicates = df[df.duplicated(subset=['question_id'], keep=False)]
+            if not duplicates.empty:
+                duplicate_ids = duplicates['question_id'].unique().tolist()
+                duplicate_rows = []
+                for dup_id in duplicate_ids:
+                    rows = df[df['question_id'] == dup_id].index.tolist()
+                    # +2 потому что pandas индексы с 0, а Excel строки с 1, плюс заголовок
+                    excel_rows = [row + 2 for row in rows]
+                    duplicate_rows.extend(excel_rows)
+                
+                return jsonify({
+                    'error': 'Обнаружены дубликаты question_id',
+                    'duplicate_question_ids': duplicate_ids,
+                    'duplicate_rows': sorted(duplicate_rows),
+                    'message': f'Дубликаты найдены в строках: {", ".join(map(str, sorted(duplicate_rows)))}'
+                }), 400
+            
+            # Проверяем наличие пустых значений в обязательных полях
+            empty_rows = []
+            for index, row in df.iterrows():
+                if pd.isna(row['question_id']) or pd.isna(row['question_text']) or pd.isna(row['answer_text']):
+                    empty_rows.append(index + 2)  # +2 для Excel нумерации
+            
+            if empty_rows:
+                return jsonify({
+                    'error': 'Обнаружены пустые значения в обязательных полях',
+                    'empty_rows': empty_rows,
+                    'message': f'Пустые значения в строках: {", ".join(map(str, empty_rows))}'
+                }), 400
+            
             # Очищаем таблицу перед загрузкой новых данных
             Question.query.delete()
             Category.query.delete()
