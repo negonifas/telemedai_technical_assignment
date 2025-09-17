@@ -28,6 +28,22 @@ import routes
 # Создание таблиц в БД при запуске
 with app.app_context():
     db.create_all()
+    # --- Автосоздание (seed) базовых категорий при первом запуске ---
+    try:
+        from models import Category
+        if Category.query.count() == 0:  # Если таблица пуста
+            base_categories = [
+                Category(name='Категория 1'),
+                Category(name='Категория 2'),
+                Category(name='Категория 3'),
+                Category(name='Категория 4'),
+            ]
+            db.session.add_all(base_categories)
+            db.session.commit()
+            print('[INIT] Добавлены базовые категории (1-4).')
+    except Exception as se:
+        # Не прерываем запуск приложения, просто выводим сообщение
+        print(f'[WARN] Не удалось выполнить сидирование категорий: {se}')
 
 # Регистрация blueprint
 app.register_blueprint(routes.api)

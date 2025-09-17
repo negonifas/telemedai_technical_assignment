@@ -23,7 +23,24 @@ def upload_file():
     
     if file.filename == '':
         return jsonify({"error": "Файл не выбран"}), 400
-        
+    
+    # --- Проверка размера файла (лимит 10 МБ) ---
+    MAX_SIZE = 10 * 1024 * 1024  # 10 МБ
+    content_length = request.content_length  # Может быть None
+    if content_length and content_length > MAX_SIZE:
+        return jsonify({"error": f"Размер файла превышает 10 МБ (получено ~{content_length / (1024*1024):.2f} МБ)"}), 400
+
+    # Если заголовка Content-Length нет или нужно перепроверить, читаем ограниченно
+    # Создадим временный буфер из первых (MAX_SIZE + 1) байт, чтобы не читать гигантский файл целиком
+    if not content_length:
+        # Сохраняем позицию и читаем ограниченно
+        pos = file.stream.tell()
+        head = file.stream.read(MAX_SIZE + 1)
+        if len(head) > MAX_SIZE:
+            return jsonify({"error": "Размер файла превышает 10 МБ"}), 400
+        # Возвращаемся в начало, чтобы pandas мог прочитать файл
+        file.stream.seek(pos)
+
     if file and file.filename.endswith('.xlsx'):
         try:
             df = pd.read_excel(file, engine='openpyxl')
