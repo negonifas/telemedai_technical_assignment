@@ -84,8 +84,8 @@ def upload_file():
                 
                 new_question = Question(
                     id=question_id,
-                    question=question_text,
-                    answer=answer_text,
+                    question_text=question_text,
+                    answer_text=answer_text,
                     topic=topic,
                     additional_data=additional_data
                 )
@@ -120,6 +120,7 @@ def get_questions():
         filter (str): 'all', 'evaluated', 'unevaluated' (по умолчанию 'all')
     """
     page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
     filter_option = request.args.get('filter', 'all', type=str)
 
     query = Question.query
@@ -129,15 +130,15 @@ def get_questions():
     elif filter_option == 'unevaluated':
         query = query.filter(Question.score.is_(None))
 
-    pagination = query.order_by(Question.id).paginate(page=page, per_page=20, error_out=False)
+    pagination = query.order_by(Question.id).paginate(page=page, per_page=per_page, error_out=False)
     questions = pagination.items
 
     result = []
     for q in questions:
         result.append({
             'id': q.id,
-            'question_short': q.question[:50] + '...' if len(q.question) > 50 else q.question,
-            'answer_short': q.answer[:50] + '...' if len(q.answer) > 50 else q.answer,
+            'question_short': q.question_text[:50] + '...' if len(q.question_text) > 50 else q.question_text,
+            'answer_short': q.answer_text[:50] + '...' if len(q.answer_text) > 50 else q.answer_text,
             'topic': q.topic,
             'categories': [c.id for c in q.categories]
         })
@@ -160,8 +161,8 @@ def get_question_detail(id):
 
     return jsonify({
         'id': question.id,
-        'question': question.question,
-        'answer': question.answer,
+        'question_text': question.question_text,
+        'answer_text': question.answer_text,
         'topic': question.topic,
         'categories': [c.id for c in question.categories],
         'additional_data': question.additional_data
