@@ -2,6 +2,12 @@ from flask import Blueprint, request, jsonify
 import pandas as pd
 from models import Question, Category, db
 from sqlalchemy.exc import IntegrityError
+import pandas as pd
+from flask import send_file
+from datetime import datetime
+import io
+from functions.export import export_csv, export_excel
+
 
 api = Blueprint('api', __name__)
 
@@ -77,10 +83,11 @@ def upload_file():
                 # Исключаем обязательные поля
                 additional_data = row.drop(['question_id', 'question_text', 'answer_text']).to_dict()
                 
-                # Конвертируем Timestamp в строку, если он есть
+                # Конвертируем Timestamp в строку, сохраняя исходный формат
                 for key, value in additional_data.items():
                     if isinstance(value, pd.Timestamp):
-                        additional_data[key] = value.isoformat()
+                        # Сохраняем исходный формат даты MM/d/yyyy
+                        additional_data[key] = value.strftime('%m/%d/%Y').lstrip('0').replace('/0', '/')
                 
                 new_question = Question(
                     id=question_id,
@@ -222,3 +229,45 @@ def get_categories():
     result = [{"id": c.id, "name": c.name} for c in categories]
     
     return jsonify({"categories": result}), 200
+
+
+@api.route('/api/export', methods=['GET'])
+def export_results():
+    """
+    Эндпоинт для экспорта результатов оценки в Excel.
+    Параметры:
+        format (str): 'excel' или 'csv' (по умолчанию 'excel')
+        filter (str): 'all', 'evaluated', 'unevaluated' (по умолчанию 'all')
+    """
+    format_type = request.args.get('format', 'excel', type=str)
+    filter_option = request.args.get('filter', 'all', type=str)
+    
+    # Фильтрация как в get_questions()
+    query = Question.query
+    if filter_option == 'evaluated':
+        query = query.filter(Question.score.isnot(None))
+    elif filter_option == 'unevaluated':
+        query = query.filter(Question.score.is_(None))
+    
+    questions = query.order_by(Question.id).all()
+    
+    # Подготовка данных для экспорта
+    data = []
+    for q in questions:
+        row = {
+            'question_id': q.id,
+            'question_text': q.question_text,
+            'answer_text': q.answer_text,
+            'score': q.score,
+            'score_text': 'Согласен' if q.score == 1 else ('Не согласен' if q.score == 0 else 'Не оценено'),
+            'categories': ', '.join([str(c.id) for c in q.categories]),
+        }
+        # Добавляем дополнительные данные
+        if q.additional_data:
+            row.update(q.additional_data)
+        data.append(row)
+    
+    if format_type == 'csv':
+        return export_csv(data, filter_option)
+    else:
+        return export_excel(data, filter_option)
