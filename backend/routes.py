@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import pandas as pd
-from models import Question, Category, db
+from models import Question, Category, db, question_categories
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from flask import send_file
@@ -82,9 +82,12 @@ def upload_file():
                     'message': f'Пустые значения в строках: {", ".join(map(str, empty_rows))}'
                 }), 400
             
-            # Очищаем таблицу перед загрузкой новых данных
+            # Очищаем таблицы перед загрузкой новых данных
+            # Сначала чистим таблицу связей many-to-many, чтобы не нарушить внешние ключи
+            db.session.execute(question_categories.delete())
+            db.session.commit()
+            # Затем удаляем только вопросы (категории сохраняем)
             Question.query.delete()
-            Category.query.delete()
             db.session.commit()
 
             # --- Наполнение БД ---
