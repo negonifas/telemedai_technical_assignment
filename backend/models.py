@@ -33,7 +33,7 @@ class Question(db.Model):
     question_text = db.Column(db.Text, nullable=False)
     answer_text = db.Column(db.Text, nullable=False)
     topic = db.Column(db.String(200))
-    score = db.Column(db.Integer, default=0)  # Добавляем недостающее поле score
+    score = db.Column(db.Integer, default=None)  # Добавляем недостающее поле score
     additional_data = db.Column(db.JSON)  # Для необязательных полей из CSV
     
     # Связь многие-ко-многим с категориями
@@ -47,8 +47,8 @@ class Question(db.Model):
         """Конвертация объекта в словарь для JSON ответов"""
         return {
             'id': self.id,
-            'question_text': self.question,
-            'answer_text': self.answer,
+            'question_text': self.question_text,
+            'answer_text': self.answer_text,
             'topic': self.topic,
             'score': self.score,
             'additional_data': self.additional_data,

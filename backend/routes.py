@@ -140,6 +140,7 @@ def get_questions():
             'question_short': q.question_text[:50] + '...' if len(q.question_text) > 50 else q.question_text,
             'answer_short': q.answer_text[:50] + '...' if len(q.answer_text) > 50 else q.answer_text,
             'topic': q.topic,
+            'score': q.score,
             'categories': [c.id for c in q.categories]
         })
 
@@ -164,6 +165,7 @@ def get_question_detail(id):
         'question_text': question.question_text,
         'answer_text': question.answer_text,
         'topic': question.topic,
+        'score': question.score,
         'categories': [c.id for c in question.categories],
         'additional_data': question.additional_data
     })
