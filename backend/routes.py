@@ -125,7 +125,7 @@ def upload_file():
             updated_count = 0 # Логика обновления была удалена согласно требованию полной очистки
             
             return jsonify({
-                "message": "Файл успешно обработан.",
+                "message": "Файл успешно загружен.",
                 "summary": {
                     "total_questions_processed": added_count
                 }

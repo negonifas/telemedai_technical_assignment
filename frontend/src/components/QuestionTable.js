@@ -97,6 +97,8 @@ const QuestionTable = ({ refreshTrigger }) => {
             q.id === questionId ? { ...q, score } : q
           )
         );
+        // Обновляем статистику после изменения оценки
+        fetchStats();
       } else {
         throw new Error('Ошибка обновления оценки');
       }

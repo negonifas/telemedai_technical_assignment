@@ -22,14 +22,6 @@ function App() {
       </header>
       <main className="App-main">
         <FileUpload onUploadSuccess={handleUploadSuccess} />
-        
-        {uploadResult && (
-          <div className="upload-result">
-            <h3>Результат загрузки:</h3>
-            <p>✅ {uploadResult.message}</p>
-            <p>📊 Обработано вопросов: {uploadResult.summary.total_questions_processed}</p>
-          </div>
-        )}
 
         <QuestionTable refreshTrigger={refreshTrigger} />
       </main>
