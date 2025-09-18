@@ -110,15 +110,18 @@
   cursor: pointer;
   color: #007bff;
   text-decoration: underline;
+  text-decoration-style: dotted;
   display: block;
   word-wrap: break-word;
+  transition: all 0.2s ease;
 }
 
 .text-clickable:hover {
   color: #0056b3;
+  text-decoration-style: solid;
   background-color: #e3f2fd;
   padding: 2px 4px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .score-cell {

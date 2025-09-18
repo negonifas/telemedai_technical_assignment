@@ -31,7 +31,6 @@ const QuestionTable = ({ refreshTrigger }) => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Данные с сервера:', data.questions?.[0]); // Отладка - посмотрим структуру
         setQuestions(data.questions || []);
         setCurrentPage(data.current_page || 1);
         setTotalPages(data.total_pages || 0);
@@ -147,7 +146,6 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   // Функции для модального окна
   const openModal = (title, content) => {
-    console.log('Открываем модальное окно:', { title, content }); // Отладка
     setModalState({
       isOpen: true,
       title,
