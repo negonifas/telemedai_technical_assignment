@@ -13,6 +13,7 @@ const QuestionTable = ({ refreshTrigger }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'evaluated', 'unevaluated'
   const [categories, setCategories] = useState([]); // Список доступных категорий
   const [updatingQuestions, setUpdatingQuestions] = useState(new Set()); // ID вопросов в процессе обновления
+  const [stats, setStats] = useState({ total: 0, evaluated: 0, unevaluated: 0 }); // Статистика по всем вопросам
   
   // Состояние модального окна
   const [modalState, setModalState] = useState({
@@ -56,6 +57,23 @@ const QuestionTable = ({ refreshTrigger }) => {
       }
     } catch (err) {
       console.error('Ошибка загрузки категорий:', err);
+    }
+  };
+
+  // Загрузка статистики по вопросам
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/questions/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          total: data.total || 0,
+          evaluated: data.evaluated || 0,
+          unevaluated: data.unevaluated || 0
+        });
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки статистики:', err);
     }
   };
 
@@ -132,6 +150,7 @@ const QuestionTable = ({ refreshTrigger }) => {
   useEffect(() => {
     fetchQuestions();
     fetchCategories(); // Загружаем категории один раз при монтировании
+    fetchStats(); // Загружаем статистику
   }, [refreshTrigger]);
 
   const handlePageChange = (newPage) => {
@@ -201,10 +220,17 @@ const QuestionTable = ({ refreshTrigger }) => {
   const ControlsRow = () => {
     const getCountText = () => {
       const count = questions.length;
-      if (filter === 'all') return `Показано: ${count} вопросов`;
-      if (filter === 'evaluated') return `Показано: ${count} оцененных`;
-      if (filter === 'unevaluated') return `Показано: ${count} неоцененных`;
-      return `Показано: ${count} вопросов`;
+      
+      if (filter === 'all') {
+        return `Показано: ${count} вопросов${stats.total > 0 ? ` из ${stats.total}` : ''}`;
+      }
+      if (filter === 'evaluated') {
+        return `Показано: ${count} оцененных${stats.evaluated > 0 ? ` из ${stats.evaluated}` : ''}`;
+      }
+      if (filter === 'unevaluated') {
+        return `Показано: ${count} неоцененных${stats.unevaluated > 0 ? ` из ${stats.unevaluated}` : ''}`;
+      }
+      return `Показано: ${count} вопросов${stats.total > 0 ? ` из ${stats.total}` : ''}`;
     };
 
     return (

@@ -242,6 +242,26 @@ def update_question(id):
         return jsonify({"error": f"Произошла ошибка при обновлении: {str(e)}"}), 500
 
 
+@api.route('/api/questions/stats', methods=['GET'])
+def get_questions_stats():
+    """
+    Эндпоинт для получения статистики по вопросам.
+    Возвращает общее количество, количество оцененных и неоцененных.
+    """
+    try:
+        total_count = Question.query.count()
+        evaluated_count = Question.query.filter(Question.score.isnot(None)).count()
+        unevaluated_count = total_count - evaluated_count
+        
+        return jsonify({
+            'total': total_count,
+            'evaluated': evaluated_count,
+            'unevaluated': unevaluated_count
+        })
+    except Exception as e:
+        return jsonify({"error": f"Ошибка получения статистики: {str(e)}"}), 500
+
+
 @api.route('/api/categories', methods=['GET'])
 def get_categories():
     """
