@@ -10,6 +10,8 @@ const QuestionTable = ({ refreshTrigger }) => {
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'evaluated', 'unevaluated'
+  const [categories, setCategories] = useState([]); // Список доступных категорий
+  const [updatingQuestions, setUpdatingQuestions] = useState(new Set()); // ID вопросов в процессе обновления
 
   const fetchQuestions = async (page = 1, filterType = filter) => {
     setLoading(true);
@@ -36,9 +38,92 @@ const QuestionTable = ({ refreshTrigger }) => {
     }
   };
 
+  // Загрузка списка категорий
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки категорий:', err);
+    }
+  };
+
+  // Обновление оценки вопроса
+  const updateQuestionScore = async (questionId, score) => {
+    setUpdatingQuestions(prev => new Set(prev).add(questionId));
+    
+    try {
+      const response = await fetch(`http://localhost:5001/api/questions/${questionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ score }),
+      });
+
+      if (response.ok) {
+        // Обновляем локальное состояние
+        setQuestions(prev => 
+          prev.map(q => 
+            q.id === questionId ? { ...q, score } : q
+          )
+        );
+      } else {
+        throw new Error('Ошибка обновления оценки');
+      }
+    } catch (err) {
+      setError(`Ошибка обновления: ${err.message}`);
+    } finally {
+      setUpdatingQuestions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(questionId);
+        return newSet;
+      });
+    }
+  };
+
+  // Обновление категорий вопроса
+  const updateQuestionCategories = async (questionId, categoryIds) => {
+    setUpdatingQuestions(prev => new Set(prev).add(questionId));
+    
+    try {
+      const response = await fetch(`http://localhost:5001/api/questions/${questionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ category_ids: categoryIds }),
+      });
+
+      if (response.ok) {
+        // Обновляем локальное состояние
+        const updatedCategories = categories.filter(cat => categoryIds.includes(cat.id));
+        setQuestions(prev => 
+          prev.map(q => 
+            q.id === questionId ? { ...q, categories: updatedCategories } : q
+          )
+        );
+      } else {
+        throw new Error('Ошибка обновления категорий');
+      }
+    } catch (err) {
+      setError(`Ошибка обновления: ${err.message}`);
+    } finally {
+      setUpdatingQuestions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(questionId);
+        return newSet;
+      });
+    }
+  };
+
   // Загружаем вопросы при монтировании компонента и при обновлении
   useEffect(() => {
     fetchQuestions();
+    fetchCategories(); // Загружаем категории один раз при монтировании
   }, [refreshTrigger]);
 
   const handlePageChange = (newPage) => {
@@ -187,12 +272,73 @@ const QuestionTable = ({ refreshTrigger }) => {
                   </span>
                 </td>
                 <td className="score-cell">
-                  <span className={`score-badge ${question.score !== null ? 'evaluated' : 'not-evaluated'}`}>
-                    {getScoreText(question.score)}
-                  </span>
+                  {updatingQuestions.has(question.id) ? (
+                    <div className="score-updating">
+                      <div className="mini-spinner"></div>
+                    </div>
+                  ) : (
+                    <div className="score-buttons">
+                      <button
+                        className={`score-btn ${question.score === 1 ? 'active agree' : 'agree'}`}
+                        onClick={() => updateQuestionScore(question.id, 1)}
+                        title="Согласен"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        className={`score-btn ${question.score === 0 ? 'active disagree' : 'disagree'}`}
+                        onClick={() => updateQuestionScore(question.id, 0)}
+                        title="Не согласен"
+                      >
+                        ✗
+                      </button>
+                      {question.score !== null && (
+                        <button
+                          className="score-btn reset"
+                          onClick={() => updateQuestionScore(question.id, null)}
+                          title="Сбросить оценку"
+                        >
+                          ⌫
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="categories-cell">
-                  {getCategoriesText(question.categories)}
+                  {updatingQuestions.has(question.id) ? (
+                    <div className="categories-updating">
+                      <div className="mini-spinner"></div>
+                    </div>
+                  ) : (
+                    <div className="categories-selector">
+                      <select
+                        multiple
+                        value={question.categories ? question.categories.map(cat => cat.id.toString()) : []}
+                        onChange={(e) => {
+                          const selectedIds = Array.from(e.target.selectedOptions, option => parseInt(option.value));
+                          updateQuestionCategories(question.id, selectedIds);
+                        }}
+                        className="categories-select"
+                      >
+                        {categories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="selected-categories">
+                        {question.categories && question.categories.length > 0 ? (
+                          question.categories.map(cat => (
+                            <span key={cat.id} className="category-tag">
+                              {cat.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="no-categories">Не назначены</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
