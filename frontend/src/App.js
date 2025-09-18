@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import FileUpload from './components/FileUpload';
+import QuestionTable from './components/QuestionTable';
 
 function App() {
   const [uploadResult, setUploadResult] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleUploadSuccess = (result) => {
     setUploadResult(result);
+    // Триггер для обновления таблицы после успешной загрузки
+    setRefreshTrigger(prev => prev + 1);
     console.log('Файл успешно загружен:', result);
   };
 
@@ -26,6 +30,8 @@ function App() {
             <p>📊 Обработано вопросов: {uploadResult.summary.total_questions_processed}</p>
           </div>
         )}
+
+        <QuestionTable refreshTrigger={refreshTrigger} />
       </main>
     </div>
   );
