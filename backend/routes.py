@@ -164,6 +164,8 @@ def get_questions():
     for q in questions:
         result.append({
             'id': q.id,
+            'question_text': q.question_text,  # Полный текст вопроса
+            'answer_text': q.answer_text,      # Полный текст ответа
             'question_short': q.question_text[:50] + '...' if len(q.question_text) > 50 else q.question_text,
             'answer_short': q.answer_text[:50] + '...' if len(q.answer_text) > 50 else q.answer_text,
             'topic': q.topic,

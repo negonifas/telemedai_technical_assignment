@@ -31,6 +31,7 @@ const QuestionTable = ({ refreshTrigger }) => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Данные с сервера:', data.questions?.[0]); // Отладка - посмотрим структуру
         setQuestions(data.questions || []);
         setCurrentPage(data.current_page || 1);
         setTotalPages(data.total_pages || 0);
@@ -146,6 +147,7 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   // Функции для модального окна
   const openModal = (title, content) => {
+    console.log('Открываем модальное окно:', { title, content }); // Отладка
     setModalState({
       isOpen: true,
       title,
@@ -286,7 +288,7 @@ const QuestionTable = ({ refreshTrigger }) => {
                     title="Кликните для просмотра полного текста"
                     onClick={() => openModal(
                       `Вопрос №${question.id}`, 
-                      question.question_short || question.question_text || question.question
+                      question.question_text || question.question
                     )}
                   >
                     {truncateText(question.question_short || question.question_text || question.question)}
@@ -298,7 +300,7 @@ const QuestionTable = ({ refreshTrigger }) => {
                     title="Кликните для просмотра полного текста"
                     onClick={() => openModal(
                       `Ответ на вопрос №${question.id}`, 
-                      question.answer_short || question.answer_text || question.answer
+                      question.answer_text || question.answer
                     )}
                   >
                     {truncateText(question.answer_short || question.answer_text || question.answer)}
