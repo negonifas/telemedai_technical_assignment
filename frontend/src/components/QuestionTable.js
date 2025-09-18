@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './QuestionTable.css';
+import Modal from './Modal';
 
 const QuestionTable = ({ refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
@@ -12,6 +13,13 @@ const QuestionTable = ({ refreshTrigger }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'evaluated', 'unevaluated'
   const [categories, setCategories] = useState([]); // Список доступных категорий
   const [updatingQuestions, setUpdatingQuestions] = useState(new Set()); // ID вопросов в процессе обновления
+  
+  // Состояние модального окна
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    title: '',
+    content: ''
+  });
 
   const fetchQuestions = async (page = 1, filterType = filter) => {
     setLoading(true);
@@ -134,6 +142,23 @@ const QuestionTable = ({ refreshTrigger }) => {
     setFilter(newFilter);
     setCurrentPage(1); // Сброс на первую страницу при смене фильтра
     fetchQuestions(1, newFilter);
+  };
+
+  // Функции для модального окна
+  const openModal = (title, content) => {
+    setModalState({
+      isOpen: true,
+      title,
+      content
+    });
+  };
+
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      title: '',
+      content: ''
+    });
   };
 
   const truncateText = (text, maxLength = 50) => {
@@ -259,16 +284,24 @@ const QuestionTable = ({ refreshTrigger }) => {
                   <span 
                     className="text-clickable"
                     title="Кликните для просмотра полного текста"
+                    onClick={() => openModal(
+                      `Вопрос №${question.id}`, 
+                      question.question_short || question.question_text || question.question
+                    )}
                   >
-                    {truncateText(question.question_short || question.question_text)}
+                    {truncateText(question.question_short || question.question_text || question.question)}
                   </span>
                 </td>
                 <td className="text-cell">
                   <span 
                     className="text-clickable"
                     title="Кликните для просмотра полного текста"
+                    onClick={() => openModal(
+                      `Ответ на вопрос №${question.id}`, 
+                      question.answer_short || question.answer_text || question.answer
+                    )}
                   >
-                    {truncateText(question.answer_short || question.answer_text)}
+                    {truncateText(question.answer_short || question.answer_text || question.answer)}
                   </span>
                 </td>
                 <td className="score-cell">
@@ -378,6 +411,14 @@ const QuestionTable = ({ refreshTrigger }) => {
           </button>
         </div>
       )}
+
+      {/* Модальное окно */}
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        content={modalState.content}
+      />
     </div>
   );
 };
