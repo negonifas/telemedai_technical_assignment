@@ -183,7 +183,7 @@ const QuestionTable = ({ refreshTrigger }) => {
   // Функция экспорта данных
   const handleExport = async (format) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/export?format=${format}`, {
+      const response = await fetch(`http://localhost:5001/api/export?format=${format}&filter=${filter}`, {
         method: 'GET',
       });
 
@@ -193,11 +193,12 @@ const QuestionTable = ({ refreshTrigger }) => {
         const link = document.createElement('a');
         link.href = url;
         
-        // Генерируем имя файла с датой
+        // Генерируем имя файла с датой и информацией о фильтре
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
         const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-        link.download = `questions_export_${dateStr}_${timeStr}.${format}`;
+        const filterSuffix = filter !== 'all' ? `_${filter}` : '';
+        link.download = `questions_export${filterSuffix}_${dateStr}_${timeStr}.${format}`;
         
         document.body.appendChild(link);
         link.click();
@@ -214,6 +215,35 @@ const QuestionTable = ({ refreshTrigger }) => {
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Компонент пагинации
+  const PaginationRow = () => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <div className="pagination">
+        <button 
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={!hasPrev}
+          className="pagination-btn"
+        >
+          ← Назад
+        </button>
+        
+        <span className="pagination-status">
+          Страница {currentPage} из {totalPages}
+        </span>
+        
+        <button 
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={!hasNext}
+          className="pagination-btn"
+        >
+          Вперед →
+        </button>
+      </div>
+    );
   };
 
   // Компонент строки управления (фильтры + счетчик + экспорт)
@@ -267,16 +297,16 @@ const QuestionTable = ({ refreshTrigger }) => {
           <button 
             className="export-btn"
             onClick={() => handleExport('csv')}
-            title="Экспорт в CSV"
+            title={`Экспорт в CSV${filter !== 'all' ? ` (${filter === 'evaluated' ? 'оцененные' : 'неоцененные'})` : ''}`}
           >
-            📊 CSV
+            📊 CSV{filter !== 'all' ? '*' : ''}
           </button>
           <button 
             className="export-btn"
             onClick={() => handleExport('xlsx')}
-            title="Экспорт в Excel"
+            title={`Экспорт в Excel${filter !== 'all' ? ` (${filter === 'evaluated' ? 'оцененные' : 'неоцененные'})` : ''}`}
           >
-            📈 Excel
+            📈 Excel{filter !== 'all' ? '*' : ''}
           </button>
         </div>
       </div>
@@ -334,12 +364,8 @@ const QuestionTable = ({ refreshTrigger }) => {
       {/* Строка управления сверху */}
       <ControlsRow />
 
-      {/* Информация о пагинации */}
-      {totalPages > 1 && (
-        <div className="pagination-info">
-          Страница {currentPage} из {totalPages}
-        </div>
-      )}
+      {/* Пагинация сверху */}
+      <PaginationRow />
       
       <div className="table-container">
         <table>
@@ -464,29 +490,8 @@ const QuestionTable = ({ refreshTrigger }) => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button 
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={!hasPrev}
-            className="pagination-btn"
-          >
-            ← Назад
-          </button>
-          
-          <span className="pagination-status">
-            Страница {currentPage} из {totalPages}
-          </span>
-          
-          <button 
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!hasNext}
-            className="pagination-btn"
-          >
-            Вперед →
-          </button>
-        </div>
-      )}
+      {/* Пагинация снизу */}
+      <PaginationRow />
 
       {/* Строка управления снизу (дублированная) */}
       <ControlsRow />
