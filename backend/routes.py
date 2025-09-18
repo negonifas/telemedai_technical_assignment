@@ -280,7 +280,8 @@ def export_results():
             'answer_text': q.answer_text,
             'score': q.score,
             'score_text': 'Согласен' if q.score == 1 else ('Не согласен' if q.score == 0 else 'Не оценено'),
-            'categories': ', '.join([str(c.id) for c in q.categories]),
+            # 'categories': ', '.join([str(c.id) for c in q.categories]),
+            'categories': ' | '.join([c.name for c in q.categories]) if q.categories else '',  # Категории берём именами
         }
         # Добавляем дополнительные данные
         if q.additional_data:
