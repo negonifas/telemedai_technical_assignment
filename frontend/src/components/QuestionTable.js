@@ -161,9 +161,100 @@ const QuestionTable = ({ refreshTrigger }) => {
     });
   };
 
+  // Функция экспорта данных
+  const handleExport = async (format) => {
+    try {
+      const response = await fetch(`http://localhost:5001/api/export?format=${format}`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Генерируем имя файла с датой
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+        link.download = `questions_export_${dateStr}_${timeStr}.${format}`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError('Ошибка при экспорте данных');
+      }
+    } catch (err) {
+      setError(`Ошибка экспорта: ${err.message}`);
+    }
+  };
+
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Компонент строки управления (фильтры + счетчик + экспорт)
+  const ControlsRow = () => {
+    const getCountText = () => {
+      const count = questions.length;
+      if (filter === 'all') return `Показано: ${count} вопросов`;
+      if (filter === 'evaluated') return `Показано: ${count} оцененных`;
+      if (filter === 'unevaluated') return `Показано: ${count} неоцененных`;
+      return `Показано: ${count} вопросов`;
+    };
+
+    return (
+      <div className="controls-row">
+        {/* Блок фильтрации */}
+        <div className="filters">
+          <button 
+            className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('all')}
+          >
+            Все
+          </button>
+          <button 
+            className={filter === 'evaluated' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('evaluated')}
+          >
+            Оцененные
+          </button>
+          <button 
+            className={filter === 'unevaluated' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('unevaluated')}
+          >
+            Неоцененные
+          </button>
+        </div>
+
+        {/* Счетчик вопросов */}
+        <div className="questions-count">
+          {getCountText()}
+        </div>
+
+        {/* Блок экспорта */}
+        <div className="export-controls">
+          <button 
+            className="export-btn"
+            onClick={() => handleExport('csv')}
+            title="Экспорт в CSV"
+          >
+            📊 CSV
+          </button>
+          <button 
+            className="export-btn"
+            onClick={() => handleExport('xlsx')}
+            title="Экспорт в Excel"
+          >
+            📈 Excel
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const getScoreText = (score) => {
@@ -198,31 +289,10 @@ const QuestionTable = ({ refreshTrigger }) => {
   if (questions.length === 0) {
     return (
       <div className="question-table">
-        <div className="table-header">
-          <h3>Вопросов (0)</h3>
-        </div>
-
-        {/* Блок фильтрации - всегда видим */}
-        <div className="filters">
-          <button 
-            className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
-            onClick={() => handleFilterChange('all')}
-          >
-            Все
-          </button>
-          <button 
-            className={filter === 'evaluated' ? 'filter-btn active' : 'filter-btn'}
-            onClick={() => handleFilterChange('evaluated')}
-          >
-            Оцененные
-          </button>
-          <button 
-            className={filter === 'unevaluated' ? 'filter-btn active' : 'filter-btn'}
-            onClick={() => handleFilterChange('unevaluated')}
-          >
-            Неоцененные
-          </button>
-        </div>
+        <h2>Список вопросов</h2>
+        
+        {/* Строка управления - всегда видна */}
+        <ControlsRow />
 
         <div className="table-empty">
           <p>📝 Вопросы не найдены{filter !== 'all' ? ` в категории "${filter === 'evaluated' ? 'Оцененные' : 'Неоцененные'}"` : '. Загрузите файл для начала работы'}.</p>
@@ -233,37 +303,17 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   return (
     <div className="question-table">
-      <div className="table-header">
-        <h3>Вопросов ({questions.length})</h3>
-        
-        {totalPages > 1 && (
-          <div className="pagination-info">
-            Страница {currentPage} из {totalPages}
-          </div>
-        )}
-      </div>
+      <h2>Список вопросов</h2>
+      
+      {/* Строка управления сверху */}
+      <ControlsRow />
 
-      {/* Блок фильтрации */}
-      <div className="filters">
-        <button 
-          className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
-          onClick={() => handleFilterChange('all')}
-        >
-          Все
-        </button>
-        <button 
-          className={filter === 'evaluated' ? 'filter-btn active' : 'filter-btn'}
-          onClick={() => handleFilterChange('evaluated')}
-        >
-          Оцененные
-        </button>
-        <button 
-          className={filter === 'unevaluated' ? 'filter-btn active' : 'filter-btn'}
-          onClick={() => handleFilterChange('unevaluated')}
-        >
-          Неоцененные
-        </button>
-      </div>
+      {/* Информация о пагинации */}
+      {totalPages > 1 && (
+        <div className="pagination-info">
+          Страница {currentPage} из {totalPages}
+        </div>
+      )}
       
       <div className="table-container">
         <table>
@@ -411,6 +461,9 @@ const QuestionTable = ({ refreshTrigger }) => {
           </button>
         </div>
       )}
+
+      {/* Строка управления снизу (дублированная) */}
+      <ControlsRow />
 
       {/* Модальное окно */}
       <Modal
