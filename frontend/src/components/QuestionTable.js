@@ -9,13 +9,15 @@ const QuestionTable = ({ refreshTrigger }) => {
   const [totalPages, setTotalPages] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
+  const [filter, setFilter] = useState('all'); // 'all', 'evaluated', 'unevaluated'
 
-  const fetchQuestions = async (page = 1) => {
+  const fetchQuestions = async (page = 1, filterType = filter) => {
     setLoading(true);
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:5001/api/questions?page=${page}&per_page=20`);
+      const url = `http://localhost:5001/api/questions?page=${page}&per_page=20&filter=${filterType}`;
+      const response = await fetch(url);
       
       if (response.ok) {
         const data = await response.json();
@@ -36,14 +38,17 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   // Загружаем вопросы при монтировании компонента и при обновлении
   useEffect(() => {
-    fetchQuestions(1); // Всегда начинаем с первой страницы при обновлении
-    setCurrentPage(1);
+    fetchQuestions();
   }, [refreshTrigger]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      fetchQuestions(newPage);
-    }
+    fetchQuestions(newPage);
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setCurrentPage(1); // Сброс на первую страницу при смене фильтра
+    fetchQuestions(1, newFilter);
   };
 
   const truncateText = (text, maxLength = 50) => {
@@ -82,8 +87,36 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   if (questions.length === 0) {
     return (
-      <div className="table-empty">
-        <p>📝 Вопросы не найдены. Загрузите файл для начала работы.</p>
+      <div className="question-table">
+        <div className="table-header">
+          <h3>Вопросов (0)</h3>
+        </div>
+
+        {/* Блок фильтрации - всегда видим */}
+        <div className="filters">
+          <button 
+            className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('all')}
+          >
+            Все
+          </button>
+          <button 
+            className={filter === 'evaluated' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('evaluated')}
+          >
+            Оцененные
+          </button>
+          <button 
+            className={filter === 'unevaluated' ? 'filter-btn active' : 'filter-btn'}
+            onClick={() => handleFilterChange('unevaluated')}
+          >
+            Неоцененные
+          </button>
+        </div>
+
+        <div className="table-empty">
+          <p>📝 Вопросы не найдены{filter !== 'all' ? ` в категории "${filter === 'evaluated' ? 'Оцененные' : 'Неоцененные'}"` : '. Загрузите файл для начала работы'}.</p>
+        </div>
       </div>
     );
   }
@@ -91,13 +124,35 @@ const QuestionTable = ({ refreshTrigger }) => {
   return (
     <div className="question-table">
       <div className="table-header">
-        <h3>Таблица вопросов ({questions.length})</h3>
+        <h3>Вопросов ({questions.length})</h3>
         
         {totalPages > 1 && (
           <div className="pagination-info">
             Страница {currentPage} из {totalPages}
           </div>
         )}
+      </div>
+
+      {/* Блок фильтрации */}
+      <div className="filters">
+        <button 
+          className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
+          onClick={() => handleFilterChange('all')}
+        >
+          Все
+        </button>
+        <button 
+          className={filter === 'evaluated' ? 'filter-btn active' : 'filter-btn'}
+          onClick={() => handleFilterChange('evaluated')}
+        >
+          Оцененные
+        </button>
+        <button 
+          className={filter === 'unevaluated' ? 'filter-btn active' : 'filter-btn'}
+          onClick={() => handleFilterChange('unevaluated')}
+        >
+          Неоцененные
+        </button>
       </div>
       
       <div className="table-container">
