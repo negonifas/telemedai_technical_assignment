@@ -170,7 +170,7 @@ def get_questions():
             'answer_short': q.answer_text[:50] + '...' if len(q.answer_text) > 50 else q.answer_text,
             'topic': q.topic,
             'score': q.score,
-            'categories': [c.id for c in q.categories]
+            'categories': [{'id': c.id, 'name': c.name} for c in q.categories]  # Полные объекты категорий
         })
 
     return jsonify({
@@ -195,7 +195,7 @@ def get_question_detail(id):
         'answer_text': question.answer_text,
         'topic': question.topic,
         'score': question.score,
-        'categories': [c.id for c in question.categories],
+        'categories': [{'id': c.id, 'name': c.name} for c in question.categories],  # Полные объекты
         'additional_data': question.additional_data
     })
 
@@ -234,7 +234,7 @@ def update_question(id):
             "question": {
                 "id": question.id,
                 "score": question.score,
-                "categories": [c.id for c in question.categories]
+                "categories": [{'id': c.id, 'name': c.name} for c in question.categories]  # Полные объекты
             }
         }), 200
     except Exception as e:
