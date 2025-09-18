@@ -258,64 +258,55 @@
 
 /* Ячейка оценки */
 .score-cell {
-  text-align: center;
+  text-align: left;
   padding: 8px;
-  width: 120px;
+  width: 140px;
 }
 
-.score-buttons {
+.score-radio-group {
   display: flex;
-  gap: 5px;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.score-btn {
-  width: 28px;
-  height: 28px;
-  border: 2px solid;
-  background: white;
-  border-radius: 50%;
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 13px;
 }
 
-.score-btn.agree {
-  border-color: #28a745;
-  color: #28a745;
+.radio-option input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
 }
 
-.score-btn.agree:hover,
-.score-btn.agree.active {
-  background: #28a745;
-  color: white;
+.radio-label {
+  cursor: pointer;
+  user-select: none;
 }
 
-.score-btn.disagree {
-  border-color: #dc3545;
-  color: #dc3545;
+.radio-option input[type="radio"]:checked + .radio-label {
+  font-weight: 600;
+  color: #007bff;
 }
 
-.score-btn.disagree:hover,
-.score-btn.disagree.active {
-  background: #dc3545;
-  color: white;
-}
-
-.score-btn.reset {
-  border-color: #6c757d;
+.clear-score-btn {
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  font-size: 11px;
   color: #6c757d;
-  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.score-btn.reset:hover {
-  background: #6c757d;
-  color: white;
+.clear-score-btn:hover {
+  background: #e9ecef;
+  color: #495057;
 }
 
 .score-updating,
@@ -323,7 +314,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 32px;
+  height: 60px;
 }
 
 .mini-spinner {
@@ -341,47 +332,31 @@
   width: 180px;
 }
 
-.categories-selector {
+.categories-checkboxes {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.categories-select {
-  width: 100%;
-  height: 60px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 4px;
-  font-size: 12px;
-  background: white;
-}
-
-.categories-select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.selected-categories {
+.checkbox-option {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
 }
 
-.category-tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 2px 6px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  border: 1px solid #bbdefb;
+.checkbox-option input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
 }
 
-.no-categories {
-  color: #999;
-  font-style: italic;
-  font-size: 12px;
+.checkbox-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-option input[type="checkbox"]:checked + .checkbox-label {
+  font-weight: 600;
+  color: #007bff;
 }

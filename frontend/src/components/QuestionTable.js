@@ -277,28 +277,34 @@ const QuestionTable = ({ refreshTrigger }) => {
                       <div className="mini-spinner"></div>
                     </div>
                   ) : (
-                    <div className="score-buttons">
-                      <button
-                        className={`score-btn ${question.score === 1 ? 'active agree' : 'agree'}`}
-                        onClick={() => updateQuestionScore(question.id, 1)}
-                        title="Согласен"
-                      >
-                        ✓
-                      </button>
-                      <button
-                        className={`score-btn ${question.score === 0 ? 'active disagree' : 'disagree'}`}
-                        onClick={() => updateQuestionScore(question.id, 0)}
-                        title="Не согласен"
-                      >
-                        ✗
-                      </button>
+                    <div className="score-radio-group">
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name={`score-${question.id}`}
+                          value="1"
+                          checked={question.score === 1}
+                          onChange={() => updateQuestionScore(question.id, 1)}
+                        />
+                        <span className="radio-label">Согласен</span>
+                      </label>
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name={`score-${question.id}`}
+                          value="0"
+                          checked={question.score === 0}
+                          onChange={() => updateQuestionScore(question.id, 0)}
+                        />
+                        <span className="radio-label">Не согласен</span>
+                      </label>
                       {question.score !== null && (
                         <button
-                          className="score-btn reset"
+                          className="clear-score-btn"
                           onClick={() => updateQuestionScore(question.id, null)}
                           title="Сбросить оценку"
                         >
-                          ⌫
+                          Сбросить
                         </button>
                       )}
                     </div>
@@ -310,33 +316,36 @@ const QuestionTable = ({ refreshTrigger }) => {
                       <div className="mini-spinner"></div>
                     </div>
                   ) : (
-                    <div className="categories-selector">
-                      <select
-                        multiple
-                        value={question.categories ? question.categories.map(cat => cat.id.toString()) : []}
-                        onChange={(e) => {
-                          const selectedIds = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-                          updateQuestionCategories(question.id, selectedIds);
-                        }}
-                        className="categories-select"
-                      >
-                        {categories.map(category => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="selected-categories">
-                        {question.categories && question.categories.length > 0 ? (
-                          question.categories.map(cat => (
-                            <span key={cat.id} className="category-tag">
-                              {cat.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="no-categories">Не назначены</span>
-                        )}
-                      </div>
+                    <div className="categories-checkboxes">
+                      {categories.map(category => {
+                        const isSelected = question.categories && 
+                          question.categories.some(cat => cat.id === category.id);
+                        
+                        return (
+                          <label key={category.id} className="checkbox-option">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const currentCategoryIds = question.categories ? 
+                                  question.categories.map(cat => cat.id) : [];
+                                
+                                let newCategoryIds;
+                                if (e.target.checked) {
+                                  // Добавляем категорию
+                                  newCategoryIds = [...currentCategoryIds, category.id];
+                                } else {
+                                  // Убираем категорию
+                                  newCategoryIds = currentCategoryIds.filter(id => id !== category.id);
+                                }
+                                
+                                updateQuestionCategories(question.id, newCategoryIds);
+                              }}
+                            />
+                            <span className="checkbox-label">{category.name}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </td>
