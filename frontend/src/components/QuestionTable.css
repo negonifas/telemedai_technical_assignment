@@ -2,9 +2,21 @@
   margin: 20px 0;
 }
 
-.question-table h3 {
-  margin: 0 0 15px 0;
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.table-header h3 {
+  margin: 0;
   color: #333;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
 }
 
 .table-container {
@@ -156,4 +168,43 @@
   .text-cell {
     max-width: 120px;
   }
+}
+
+/* Пагинация */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.pagination-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-status {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
 }

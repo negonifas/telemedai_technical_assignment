@@ -5,17 +5,25 @@ const QuestionTable = ({ refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
 
-  const fetchQuestions = async () => {
+  const fetchQuestions = async (page = 1) => {
     setLoading(true);
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5001/api/questions');
+      const response = await fetch(`http://localhost:5001/api/questions?page=${page}&per_page=20`);
       
       if (response.ok) {
         const data = await response.json();
         setQuestions(data.questions || []);
+        setCurrentPage(data.current_page || 1);
+        setTotalPages(data.total_pages || 0);
+        setHasNext(data.has_next || false);
+        setHasPrev(data.has_prev || false);
       } else {
         setError('Ошибка загрузки вопросов');
       }
@@ -28,8 +36,15 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   // Загружаем вопросы при монтировании компонента и при обновлении
   useEffect(() => {
-    fetchQuestions();
+    fetchQuestions(1); // Всегда начинаем с первой страницы при обновлении
+    setCurrentPage(1);
   }, [refreshTrigger]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchQuestions(newPage);
+    }
+  };
 
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
@@ -60,7 +75,7 @@ const QuestionTable = ({ refreshTrigger }) => {
     return (
       <div className="table-error">
         <p>❌ {error}</p>
-        <button onClick={fetchQuestions}>Попробовать снова</button>
+        <button onClick={() => fetchQuestions(currentPage)}>Попробовать снова</button>
       </div>
     );
   }
@@ -75,7 +90,15 @@ const QuestionTable = ({ refreshTrigger }) => {
 
   return (
     <div className="question-table">
-      <h3>Таблица вопросов ({questions.length})</h3>
+      <div className="table-header">
+        <h3>Таблица вопросов ({questions.length})</h3>
+        
+        {totalPages > 1 && (
+          <div className="pagination-info">
+            Страница {currentPage} из {totalPages}
+          </div>
+        )}
+      </div>
       
       <div className="table-container">
         <table>
@@ -121,6 +144,30 @@ const QuestionTable = ({ refreshTrigger }) => {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={!hasPrev}
+            className="pagination-btn"
+          >
+            ← Назад
+          </button>
+          
+          <span className="pagination-status">
+            Страница {currentPage} из {totalPages}
+          </span>
+          
+          <button 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={!hasNext}
+            className="pagination-btn"
+          >
+            Вперед →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
