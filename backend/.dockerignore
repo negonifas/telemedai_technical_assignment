@@ -1,0 +1,29 @@
+# Python/django/node artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Local files
+*.sqlite3
+instance/
+.pytest_cache/
+.coverage
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# Git
+.git
+.gitignore
+
+# Build artifacts
+dist/
+build/
