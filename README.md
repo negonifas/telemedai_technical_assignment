@@ -116,6 +116,12 @@ curl -v http://localhost:5001/health
 
 ## Типичные проблемы и решения
 
+- Если на фронте в браузере пишет проблемы с сетью:
+  Побовать поднять отдельно бэк
+  ```bash
+  docker compose up -d --build backend
+  ```
+
 - Если `docker compose up` падает с ошибкой привязки порта 5432 — это значит, что на хосте уже запущен Postgres. Решения:
   - Остановите локальный системный Postgres: `sudo systemctl stop postgresql` (в Linux), или
   - Измените проброс порта в `docker-compose.yml` (хост:контейнер) на другой хост-порт.
@@ -141,4 +147,5 @@ docker system prune -a
 ```bash
 docker compose down --rmi all -v
 ```
+
 
